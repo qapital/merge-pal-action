@@ -11,9 +11,11 @@ export default function isEnabledForPR(
     const matchedBlack = labels.filter((label) => blacklist.includes(label))
     const matchedWhite = labels.filter((label) => whitelist.includes(label))
     if (blacklist.length > 0 && matchedBlack.length > 0) {
+        console.log(`PR #${ pr.number }: matched a blacklisted label, we are ignoring`)
         return false
     }
     if (whitelist.length > 0 && matchedWhite.length === 0) {
+        console.log(`PR #${ pr.number }: has not matched a whitelisted label, we are ignoring`)
         return false
     }
     return true

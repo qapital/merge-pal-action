@@ -36,9 +36,11 @@ describe('mergeIfReady', () => {
         }
         const whitelist = []
         const blacklist = []
+        const allowUpdateOfPR = false
         const config: Config = {
             whitelist,
             blacklist,
+            allowUpdateOfPR,
         }
         isEnabledForPR.mockReturnValueOnce(false)
         get.mockReturnValueOnce(mockPR)
@@ -88,10 +90,11 @@ describe('mergeIfReady', () => {
         canMerge.mockReturnValue(true)
         const whitelist = []
         const blacklist = []
+        const allowUpdateOfPR = false
         const config: Config = {
             whitelist,
             blacklist,
-            method,
+            allowUpdateOfPR,
         }
         await mergeIfReady(
             (client as unknown) as Client,
@@ -118,9 +121,7 @@ describe('mergeIfReady', () => {
         expect(merge).toHaveBeenCalledWith({
             owner,
             repo,
-            pull_number: prNumber,
-            sha,
-            merge_method: method,
+            pull_number: prNumber
         })
     })
     it('does not merge pr if it is not allowed to merge', async () => {
@@ -138,9 +139,11 @@ describe('mergeIfReady', () => {
         }
         const whitelist = []
         const blacklist = []
+        const allowUpdateOfPR = false
         const config: Config = {
             whitelist,
             blacklist,
+            allowUpdateOfPR,
         }
         isEnabledForPR.mockReturnValueOnce(true)
         get.mockReturnValueOnce(mockPR)

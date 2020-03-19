@@ -13,6 +13,7 @@ describe('config', () => {
                 whitelist: [],
                 blacklist: [],
                 method: undefined,
+                allowUpdateOfPR: false,
             })
         })
         it('throws when types mismatch', () => {
@@ -26,29 +27,13 @@ describe('config', () => {
                     blacklist: {},
                 })
             }).toThrowError()
-            expect(() => {
-                parseConfig({
-                    method: {},
-                })
-            }).toThrowError()
-            expect(() => {
-                parseConfig({
-                    method: 'unknown string',
-                })
-            }).toThrowError()
-        })
-        it('assigns method', () => {
-            expect(parseConfig({ method: 'merge' })).toEqual({
-                whitelist: [],
-                blacklist: [],
-                method: 'merge',
-            })
         })
     })
     it('provides default config when file is absent', () => {
         expect(readConfig(path.join(__dirname, '.mergepal.yml'))).toEqual({
             whitelist: [],
             blacklist: [],
+            allowUpdateOfPR: false
         })
     })
     it('it parses whitelist and blacklist', () => {
@@ -57,6 +42,7 @@ describe('config', () => {
         ).toEqual({
             whitelist: ['white'],
             blacklist: ['black'],
+            allowUpdateOfPR: false
         })
     })
     it('it parses whitelist', () => {
@@ -65,6 +51,7 @@ describe('config', () => {
         ).toEqual({
             whitelist: ['white'],
             blacklist: [],
+            allowUpdateOfPR: false
         })
     })
     it('it parses blacklist', () => {
@@ -73,6 +60,16 @@ describe('config', () => {
         ).toEqual({
             whitelist: [],
             blacklist: ['black'],
+            allowUpdateOfPR: false
+        })
+    })
+    it('it parses allowUpdateOfPR', () => {
+        expect(
+            readConfig(path.join(__dirname, './configs/allowUpdateOfPR.yml')),
+        ).toEqual({
+            whitelist: [],
+            blacklist: [],
+            allowUpdateOfPR: true
         })
     })
 })

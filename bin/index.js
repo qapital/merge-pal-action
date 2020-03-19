@@ -425,6 +425,13 @@ module.exports = new Schema({
 
 /***/ }),
 
+/***/ 34:
+/***/ (function(module) {
+
+module.exports = require("https");
+
+/***/ }),
+
 /***/ 39:
 /***/ (function(module) {
 
@@ -739,6 +746,28 @@ module.exports = new Type('tag:yaml.org,2002:int', {
     hexadecimal: [ 16, 'hex' ]
   }
 });
+
+
+/***/ }),
+
+/***/ 46:
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+module.exports = getUserAgentNode
+
+const osName = __webpack_require__(2)
+
+function getUserAgentNode () {
+  try {
+    return `Node.js/${process.version.substr(1)} (${osName()}; ${process.arch})`
+  } catch (error) {
+    if (/wmic os get Caption/.test(error.message)) {
+      return 'Windows <version undetectable>'
+    }
+
+    throw error
+  }
+}
 
 
 /***/ }),
@@ -2015,7 +2044,7 @@ function main(core, github) {
         const client = new github.GitHub(token);
         const config = readConfig_1.default('.mergepal.yml');
         console.log('config', JSON.stringify(config));
-        console.log('context', JSON.stringify(github.context));
+        // console.log('context', JSON.stringify(github.context))
         const event = github.context.eventName;
         switch (event) {
             case 'pull_request':
@@ -2268,16 +2297,39 @@ function checkMode (stat, options) {
 /***/ }),
 
 /***/ 211:
-/***/ (function(module) {
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
 
-module.exports = require("https");
+"use strict";
+
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var osName = _interopDefault(__webpack_require__(2));
+
+function getUserAgent() {
+  try {
+    return `Node.js/${process.version.substr(1)} (${osName()}; ${process.arch})`;
+  } catch (error) {
+    if (/wmic os get Caption/.test(error.message)) {
+      return "Windows <version undetectable>";
+    }
+
+    return "<environment undetectable>";
+  }
+}
+
+exports.getUserAgent = getUserAgent;
+//# sourceMappingURL=index.js.map
+
 
 /***/ }),
 
 /***/ 215:
 /***/ (function(module) {
 
-module.exports = {"name":"@octokit/rest","version":"16.33.1","publishConfig":{"access":"public"},"description":"GitHub REST API client for Node.js","keywords":["octokit","github","rest","api-client"],"author":"Gregor Martynus (https://github.com/gr2m)","contributors":[{"name":"Mike de Boer","email":"info@mikedeboer.nl"},{"name":"Fabian Jakobs","email":"fabian@c9.io"},{"name":"Joe Gallo","email":"joe@brassafrax.com"},{"name":"Gregor Martynus","url":"https://github.com/gr2m"}],"repository":"https://github.com/octokit/rest.js","dependencies":{"@octokit/request":"^5.2.0","@octokit/request-error":"^1.0.2","atob-lite":"^2.0.0","before-after-hook":"^2.0.0","btoa-lite":"^1.0.0","deprecation":"^2.0.0","lodash.get":"^4.4.2","lodash.set":"^4.3.2","lodash.uniq":"^4.5.0","octokit-pagination-methods":"^1.1.0","once":"^1.4.0","universal-user-agent":"^4.0.0"},"devDependencies":{"@gimenete/type-writer":"^0.1.3","@octokit/fixtures-server":"^5.0.6","@octokit/graphql":"^4.2.0","@types/node":"^12.0.0","bundlesize":"^0.18.0","chai":"^4.1.2","compression-webpack-plugin":"^3.0.0","cypress":"^3.0.0","glob":"^7.1.2","http-proxy-agent":"^2.1.0","lodash.camelcase":"^4.3.0","lodash.merge":"^4.6.1","lodash.upperfirst":"^4.3.1","mkdirp":"^0.5.1","mocha":"^6.0.0","mustache":"^3.0.0","nock":"^11.3.3","npm-run-all":"^4.1.2","nyc":"^14.0.0","prettier":"^1.14.2","proxy":"^1.0.0","semantic-release":"^15.0.0","sinon":"^7.2.4","sinon-chai":"^3.0.0","sort-keys":"^4.0.0","string-to-arraybuffer":"^1.0.0","string-to-jsdoc-comment":"^1.0.0","typescript":"^3.3.1","webpack":"^4.0.0","webpack-bundle-analyzer":"^3.0.0","webpack-cli":"^3.0.0"},"types":"index.d.ts","scripts":{"coverage":"nyc report --reporter=html && open coverage/index.html","lint":"prettier --check '{lib,plugins,scripts,test}/**/*.{js,json,ts}' 'docs/*.{js,json}' 'docs/src/**/*' index.js README.md package.json","lint:fix":"prettier --write '{lib,plugins,scripts,test}/**/*.{js,json,ts}' 'docs/*.{js,json}' 'docs/src/**/*' index.js README.md package.json","pretest":"npm run -s lint","test":"nyc mocha test/mocha-node-setup.js \"test/*/**/*-test.js\"","test:browser":"cypress run --browser chrome","build":"npm-run-all build:*","build:ts":"npm run -s update-endpoints:typescript","prebuild:browser":"mkdirp dist/","build:browser":"npm-run-all build:browser:*","build:browser:development":"webpack --mode development --entry . --output-library=Octokit --output=./dist/octokit-rest.js --profile --json > dist/bundle-stats.json","build:browser:production":"webpack --mode production --entry . --plugin=compression-webpack-plugin --output-library=Octokit --output-path=./dist --output-filename=octokit-rest.min.js --devtool source-map","generate-bundle-report":"webpack-bundle-analyzer dist/bundle-stats.json --mode=static --no-open --report dist/bundle-report.html","update-endpoints":"npm-run-all update-endpoints:*","update-endpoints:fetch-json":"node scripts/update-endpoints/fetch-json","update-endpoints:code":"node scripts/update-endpoints/code","update-endpoints:typescript":"node scripts/update-endpoints/typescript","prevalidate:ts":"npm run -s build:ts","validate:ts":"tsc --target es6 --noImplicitAny index.d.ts","postvalidate:ts":"tsc --noEmit --target es6 test/typescript-validate.ts","start-fixtures-server":"octokit-fixtures-server"},"license":"MIT","files":["index.js","index.d.ts","lib","plugins"],"nyc":{"ignore":["test"]},"release":{"publish":["@semantic-release/npm",{"path":"@semantic-release/github","assets":["dist/*","!dist/*.map.gz"]}]},"bundlesize":[{"path":"./dist/octokit-rest.min.js.gz","maxSize":"33 kB"}]};
+module.exports = {"_from":"@octokit/rest@16.33.1","_id":"@octokit/rest@16.33.1","_inBundle":false,"_integrity":"sha512-lOQ+fJZwkeJ/1PRTdnY1uNja01aKOMioRhQfZtei64gZMXIX3EAfF4koMQMvoLFwsnVBu3ifj1JW1WAAKdXcnA==","_location":"/@octokit/rest","_phantomChildren":{"os-name":"3.1.0"},"_requested":{"type":"version","registry":true,"raw":"@octokit/rest@16.33.1","name":"@octokit/rest","escapedName":"@octokit%2frest","scope":"@octokit","rawSpec":"16.33.1","saveSpec":null,"fetchSpec":"16.33.1"},"_requiredBy":["/@actions/github"],"_resolved":"https://registry.npmjs.org/@octokit/rest/-/rest-16.33.1.tgz","_shasum":"19229f5fd28d8e071644d37c249775ee40add433","_spec":"@octokit/rest@16.33.1","_where":"/Users/jure/Documents/workspace/qapital/merge-pal-action/node_modules/@actions/github","author":{"name":"Gregor Martynus","url":"https://github.com/gr2m"},"bugs":{"url":"https://github.com/octokit/rest.js/issues"},"bundleDependencies":false,"bundlesize":[{"path":"./dist/octokit-rest.min.js.gz","maxSize":"33 kB"}],"contributors":[{"name":"Mike de Boer","email":"info@mikedeboer.nl"},{"name":"Fabian Jakobs","email":"fabian@c9.io"},{"name":"Joe Gallo","email":"joe@brassafrax.com"},{"name":"Gregor Martynus","url":"https://github.com/gr2m"}],"dependencies":{"@octokit/request":"^5.2.0","@octokit/request-error":"^1.0.2","atob-lite":"^2.0.0","before-after-hook":"^2.0.0","btoa-lite":"^1.0.0","deprecation":"^2.0.0","lodash.get":"^4.4.2","lodash.set":"^4.3.2","lodash.uniq":"^4.5.0","octokit-pagination-methods":"^1.1.0","once":"^1.4.0","universal-user-agent":"^4.0.0"},"deprecated":false,"description":"GitHub REST API client for Node.js","devDependencies":{"@gimenete/type-writer":"^0.1.3","@octokit/fixtures-server":"^5.0.6","@octokit/graphql":"^4.2.0","@types/node":"^12.0.0","bundlesize":"^0.18.0","chai":"^4.1.2","compression-webpack-plugin":"^3.0.0","cypress":"^3.0.0","glob":"^7.1.2","http-proxy-agent":"^2.1.0","lodash.camelcase":"^4.3.0","lodash.merge":"^4.6.1","lodash.upperfirst":"^4.3.1","mkdirp":"^0.5.1","mocha":"^6.0.0","mustache":"^3.0.0","nock":"^11.3.3","npm-run-all":"^4.1.2","nyc":"^14.0.0","prettier":"^1.14.2","proxy":"^1.0.0","semantic-release":"^15.0.0","sinon":"^7.2.4","sinon-chai":"^3.0.0","sort-keys":"^4.0.0","string-to-arraybuffer":"^1.0.0","string-to-jsdoc-comment":"^1.0.0","typescript":"^3.3.1","webpack":"^4.0.0","webpack-bundle-analyzer":"^3.0.0","webpack-cli":"^3.0.0"},"files":["index.js","index.d.ts","lib","plugins"],"homepage":"https://github.com/octokit/rest.js#readme","keywords":["octokit","github","rest","api-client"],"license":"MIT","name":"@octokit/rest","nyc":{"ignore":["test"]},"publishConfig":{"access":"public"},"release":{"publish":["@semantic-release/npm",{"path":"@semantic-release/github","assets":["dist/*","!dist/*.map.gz"]}]},"repository":{"type":"git","url":"git+https://github.com/octokit/rest.js.git"},"scripts":{"build":"npm-run-all build:*","build:browser":"npm-run-all build:browser:*","build:browser:development":"webpack --mode development --entry . --output-library=Octokit --output=./dist/octokit-rest.js --profile --json > dist/bundle-stats.json","build:browser:production":"webpack --mode production --entry . --plugin=compression-webpack-plugin --output-library=Octokit --output-path=./dist --output-filename=octokit-rest.min.js --devtool source-map","build:ts":"npm run -s update-endpoints:typescript","coverage":"nyc report --reporter=html && open coverage/index.html","generate-bundle-report":"webpack-bundle-analyzer dist/bundle-stats.json --mode=static --no-open --report dist/bundle-report.html","lint":"prettier --check '{lib,plugins,scripts,test}/**/*.{js,json,ts}' 'docs/*.{js,json}' 'docs/src/**/*' index.js README.md package.json","lint:fix":"prettier --write '{lib,plugins,scripts,test}/**/*.{js,json,ts}' 'docs/*.{js,json}' 'docs/src/**/*' index.js README.md package.json","postvalidate:ts":"tsc --noEmit --target es6 test/typescript-validate.ts","prebuild:browser":"mkdirp dist/","pretest":"npm run -s lint","prevalidate:ts":"npm run -s build:ts","start-fixtures-server":"octokit-fixtures-server","test":"nyc mocha test/mocha-node-setup.js \"test/*/**/*-test.js\"","test:browser":"cypress run --browser chrome","update-endpoints":"npm-run-all update-endpoints:*","update-endpoints:code":"node scripts/update-endpoints/code","update-endpoints:fetch-json":"node scripts/update-endpoints/fetch-json","update-endpoints:typescript":"node scripts/update-endpoints/typescript","validate:ts":"tsc --target es6 --noImplicitAny index.d.ts"},"types":"index.d.ts","version":"16.33.1"};
 
 /***/ }),
 
@@ -4163,7 +4215,7 @@ function authenticationRequestError(state, error, options) {
 module.exports = parseOptions;
 
 const { Deprecation } = __webpack_require__(692);
-const { getUserAgent } = __webpack_require__(796);
+const { getUserAgent } = __webpack_require__(619);
 const once = __webpack_require__(969);
 
 const pkg = __webpack_require__(215);
@@ -4464,7 +4516,7 @@ function octokitRestNormalizeGitReferenceResponses(octokit) {
 /***/ 314:
 /***/ (function(module) {
 
-module.exports = {"name":"@octokit/graphql","version":"2.1.3","publishConfig":{"access":"public"},"description":"GitHub GraphQL API client for browsers and Node","main":"index.js","scripts":{"prebuild":"mkdirp dist/","build":"npm-run-all build:*","build:development":"webpack --mode development --entry . --output-library=octokitGraphql --output=./dist/octokit-graphql.js --profile --json > dist/bundle-stats.json","build:production":"webpack --mode production --entry . --plugin=compression-webpack-plugin --output-library=octokitGraphql --output-path=./dist --output-filename=octokit-graphql.min.js --devtool source-map","bundle-report":"webpack-bundle-analyzer dist/bundle-stats.json --mode=static --no-open --report dist/bundle-report.html","coverage":"nyc report --reporter=html && open coverage/index.html","coverage:upload":"nyc report --reporter=text-lcov | coveralls","pretest":"standard","test":"nyc mocha test/*-test.js","test:browser":"cypress run --browser chrome"},"repository":{"type":"git","url":"https://github.com/octokit/graphql.js.git"},"keywords":["octokit","github","api","graphql"],"author":"Gregor Martynus (https://github.com/gr2m)","license":"MIT","bugs":{"url":"https://github.com/octokit/graphql.js/issues"},"homepage":"https://github.com/octokit/graphql.js#readme","dependencies":{"@octokit/request":"^5.0.0","universal-user-agent":"^2.0.3"},"devDependencies":{"chai":"^4.2.0","compression-webpack-plugin":"^2.0.0","coveralls":"^3.0.3","cypress":"^3.1.5","fetch-mock":"^7.3.1","mkdirp":"^0.5.1","mocha":"^6.0.0","npm-run-all":"^4.1.3","nyc":"^14.0.0","semantic-release":"^15.13.3","simple-mock":"^0.8.0","standard":"^12.0.1","webpack":"^4.29.6","webpack-bundle-analyzer":"^3.1.0","webpack-cli":"^3.2.3"},"bundlesize":[{"path":"./dist/octokit-graphql.min.js.gz","maxSize":"5KB"}],"release":{"publish":["@semantic-release/npm",{"path":"@semantic-release/github","assets":["dist/*","!dist/*.map.gz"]}]},"standard":{"globals":["describe","before","beforeEach","afterEach","after","it","expect"]},"files":["lib"]};
+module.exports = {"_from":"@octokit/graphql@2.1.3","_id":"@octokit/graphql@2.1.3","_inBundle":false,"_integrity":"sha512-XoXJqL2ondwdnMIW3wtqJWEwcBfKk37jO/rYkoxNPEVeLBDGsGO1TCWggrAlq3keGt/O+C/7VepXnukUxwt5vA==","_location":"/@octokit/graphql","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"@octokit/graphql@2.1.3","name":"@octokit/graphql","escapedName":"@octokit%2fgraphql","scope":"@octokit","rawSpec":"2.1.3","saveSpec":null,"fetchSpec":"2.1.3"},"_requiredBy":["/@actions/github"],"_resolved":"https://registry.npmjs.org/@octokit/graphql/-/graphql-2.1.3.tgz","_shasum":"60c058a0ed5fa242eca6f938908d95fd1a2f4b92","_spec":"@octokit/graphql@2.1.3","_where":"/Users/jure/Documents/workspace/qapital/merge-pal-action/node_modules/@actions/github","author":{"name":"Gregor Martynus","url":"https://github.com/gr2m"},"bugs":{"url":"https://github.com/octokit/graphql.js/issues"},"bundleDependencies":false,"bundlesize":[{"path":"./dist/octokit-graphql.min.js.gz","maxSize":"5KB"}],"dependencies":{"@octokit/request":"^5.0.0","universal-user-agent":"^2.0.3"},"deprecated":false,"description":"GitHub GraphQL API client for browsers and Node","devDependencies":{"chai":"^4.2.0","compression-webpack-plugin":"^2.0.0","coveralls":"^3.0.3","cypress":"^3.1.5","fetch-mock":"^7.3.1","mkdirp":"^0.5.1","mocha":"^6.0.0","npm-run-all":"^4.1.3","nyc":"^14.0.0","semantic-release":"^15.13.3","simple-mock":"^0.8.0","standard":"^12.0.1","webpack":"^4.29.6","webpack-bundle-analyzer":"^3.1.0","webpack-cli":"^3.2.3"},"files":["lib"],"homepage":"https://github.com/octokit/graphql.js#readme","keywords":["octokit","github","api","graphql"],"license":"MIT","main":"index.js","name":"@octokit/graphql","publishConfig":{"access":"public"},"release":{"publish":["@semantic-release/npm",{"path":"@semantic-release/github","assets":["dist/*","!dist/*.map.gz"]}]},"repository":{"type":"git","url":"git+https://github.com/octokit/graphql.js.git"},"scripts":{"build":"npm-run-all build:*","build:development":"webpack --mode development --entry . --output-library=octokitGraphql --output=./dist/octokit-graphql.js --profile --json > dist/bundle-stats.json","build:production":"webpack --mode production --entry . --plugin=compression-webpack-plugin --output-library=octokitGraphql --output-path=./dist --output-filename=octokit-graphql.min.js --devtool source-map","bundle-report":"webpack-bundle-analyzer dist/bundle-stats.json --mode=static --no-open --report dist/bundle-report.html","coverage":"nyc report --reporter=html && open coverage/index.html","coverage:upload":"nyc report --reporter=text-lcov | coveralls","prebuild":"mkdirp dist/","pretest":"standard","test":"nyc mocha test/*-test.js","test:browser":"cypress run --browser chrome"},"standard":{"globals":["describe","before","beforeEach","afterEach","after","it","expect"]},"version":"2.1.3"};
 
 /***/ }),
 
@@ -4487,19 +4539,26 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const isEnabledForPR_1 = __importDefault(__webpack_require__(520));
+const rebaseNextLabeledOpenedPR_1 = __importDefault(__webpack_require__(817));
 function pushHandler(client, context, config) {
     return __awaiter(this, void 0, void 0, function* () {
         const payload = context.payload;
         const components = payload.ref.split('/');
         const branchName = components[components.length - 1];
         const openedPrs = yield client.pulls.list(Object.assign(Object.assign({}, context.repo), { state: 'open', base: branchName }));
-        console.log('opened prs', openedPrs);
+        console.log(`openedPrs= ${openedPrs}`);
         yield Promise.all(openedPrs.data.map((pr) => {
             if (!isEnabledForPR_1.default(pr, config.whitelist, config.blacklist)) {
                 return;
             }
-            return client.pulls.updateBranch(Object.assign(Object.assign({}, context.repo), { pull_number: pr.number, expected_head_sha: pr.head.sha }));
+            console.log(`allowUpdateOfPR is ${config.allowUpdateOfPR}`);
+            if (config.allowUpdateOfPR) {
+                return client.pulls.updateBranch(Object.assign(Object.assign({}, context.repo), { pull_number: pr.number, expected_head_sha: pr.head.sha }));
+            }
         }));
+        if (!config.allowUpdateOfPR) {
+            yield rebaseNextLabeledOpenedPR_1.default(client, config, context.repo.owner, context.repo.repo);
+        }
     });
 }
 exports.default = pushHandler;
@@ -5016,7 +5075,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var isPlainObject = _interopDefault(__webpack_require__(626));
-var universalUserAgent = __webpack_require__(796);
+var universalUserAgent = __webpack_require__(562);
 
 function lowercaseKeys(object) {
   if (!object) {
@@ -5281,7 +5340,7 @@ function parse(options) {
   // https://fetch.spec.whatwg.org/#methods
   let method = options.method.toUpperCase(); // replace :varname with {varname} to make it RFC 6570 compatible
 
-  let url = options.url.replace(/:([a-z]\w+)/g, "{+$1}");
+  let url = (options.url || "/").replace(/:([a-z]\w+)/g, "{+$1}");
   let headers = Object.assign({}, options.headers);
   let body;
   let parameters = omit(options, ["method", "baseUrl", "url", "headers", "request", "mediaType"]); // extract variable names from URL to calculate remaining variables later
@@ -5366,9 +5425,11 @@ function withDefaults(oldDefaults, newDefaults) {
   });
 }
 
-const VERSION = "5.4.1";
+const VERSION = "5.5.3";
 
-const userAgent = `octokit-endpoint.js/${VERSION} ${universalUserAgent.getUserAgent()}`;
+const userAgent = `octokit-endpoint.js/${VERSION} ${universalUserAgent.getUserAgent()}`; // DEFAULTS has all properties set that EndpointOptions has, except url.
+// So we use RequestParameters and add method as additional required property.
+
 const DEFAULTS = {
   method: "GET",
   baseUrl: "https://api.github.com",
@@ -5884,7 +5945,7 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 var Stream = _interopDefault(__webpack_require__(413));
 var http = _interopDefault(__webpack_require__(605));
 var Url = _interopDefault(__webpack_require__(835));
-var https = _interopDefault(__webpack_require__(211));
+var https = _interopDefault(__webpack_require__(34));
 var zlib = _interopDefault(__webpack_require__(761));
 
 // Based on https://github.com/tmpvar/jsdom/blob/aa85b2abf07766ff7bf5c1f6daafb3726f2f2db5/lib/jsdom/living/blob.js
@@ -9244,7 +9305,7 @@ class RequestError extends Error {
       }
 
     });
-    this.headers = options.headers; // redact request credentials without mutating original request options
+    this.headers = options.headers || {}; // redact request credentials without mutating original request options
 
     const requestCopy = Object.assign({}, options.request);
 
@@ -9265,6 +9326,7 @@ class RequestError extends Error {
 }
 
 exports.RequestError = RequestError;
+//# sourceMappingURL=index.js.map
 
 
 /***/ }),
@@ -9659,7 +9721,7 @@ function graphql (request, query, options) {
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
 const { request } = __webpack_require__(753)
-const getUserAgent = __webpack_require__(650)
+const getUserAgent = __webpack_require__(46)
 
 const version = __webpack_require__(314).version
 const userAgent = `octokit-graphql.js/${version} ${getUserAgent()}`
@@ -9744,9 +9806,11 @@ function isEnabledForPR(pr, whitelist, blacklist) {
     const matchedBlack = labels.filter((label) => blacklist.includes(label));
     const matchedWhite = labels.filter((label) => whitelist.includes(label));
     if (blacklist.length > 0 && matchedBlack.length > 0) {
+        console.log(`PR #${pr.number}: matched a blacklisted label, we are ignoring`);
         return false;
     }
     if (whitelist.length > 0 && matchedWhite.length === 0) {
+        console.log(`PR #${pr.number}: has not matched a whitelisted label, we are ignoring`);
         return false;
     }
     return true;
@@ -9979,6 +10043,36 @@ function hasPreviousPage (link) {
   deprecate(`octokit.hasPreviousPage() – You can use octokit.paginate or async iterators instead: https://github.com/octokit/rest.js#pagination.`)
   return getPageLinks(link).prev
 }
+
+
+/***/ }),
+
+/***/ 562:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var osName = _interopDefault(__webpack_require__(2));
+
+function getUserAgent() {
+  try {
+    return `Node.js/${process.version.substr(1)} (${osName()}; ${process.arch})`;
+  } catch (error) {
+    if (/wmic os get Caption/.test(error.message)) {
+      return "Windows <version undetectable>";
+    }
+
+    return "<environment undetectable>";
+  }
+}
+
+exports.getUserAgent = getUserAgent;
+//# sourceMappingURL=index.js.map
 
 
 /***/ }),
@@ -10230,8 +10324,6 @@ exports.canMergeByMergeableState = canMergeByMergeableState;
 function canMerge(pr, whitelist, blacklist) {
     const byMergeable = canMergeByMergeable(pr);
     const byMergeableState = canMergeByMergeableState(pr);
-    console.log('by mergeable', byMergeable);
-    console.log('by mergeable state', byMergeableState);
     return byMergeable && byMergeableState;
 }
 exports.default = canMerge;
@@ -10299,6 +10391,36 @@ module.exports = Octokit.plugin(CORE_PLUGINS);
 /***/ (function(module) {
 
 module.exports = require("events");
+
+/***/ }),
+
+/***/ 619:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var osName = _interopDefault(__webpack_require__(2));
+
+function getUserAgent() {
+  try {
+    return `Node.js/${process.version.substr(1)} (${osName()}; ${process.arch})`;
+  } catch (error) {
+    if (/wmic os get Caption/.test(error.message)) {
+      return "Windows <version undetectable>";
+    }
+
+    throw error;
+  }
+}
+
+exports.getUserAgent = getUserAgent;
+//# sourceMappingURL=index.js.map
+
 
 /***/ }),
 
@@ -10545,28 +10667,6 @@ const getPage = __webpack_require__(265)
 
 function getLastPage (octokit, link, headers) {
   return getPage(octokit, link, 'last', headers)
-}
-
-
-/***/ }),
-
-/***/ 650:
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-module.exports = getUserAgentNode
-
-const osName = __webpack_require__(2)
-
-function getUserAgentNode () {
-  try {
-    return `Node.js/${process.version.substr(1)} (${osName()}; ${process.arch})`
-  } catch (error) {
-    if (/wmic os get Caption/.test(error.message)) {
-      return 'Windows <version undetectable>'
-    }
-
-    throw error
-  }
 }
 
 
@@ -11667,6 +11767,46 @@ module.exports = new Schema({
 
 /***/ }),
 
+/***/ 729:
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+function labelAndCommentPR(client, config, owner, repo, number) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log(`Adding label '${config.rebaseInProgressLabel}' to PR #${number}`);
+        const labels = [config.rebaseInProgressLabel];
+        yield client.issues.addLabels({
+            owner,
+            repo,
+            issue_number: number,
+            labels
+        });
+        console.log(`Adding comment '${config.rebaseCommentCommand}' to PR #${number}`);
+        yield client.issues.createComment({
+            owner,
+            repo,
+            issue_number: number,
+            body: config.rebaseCommentCommand
+        });
+        console.log(`Done`);
+    });
+}
+exports.default = labelAndCommentPR;
+
+
+/***/ }),
+
 /***/ 740:
 /***/ (function(module) {
 
@@ -11817,27 +11957,41 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const canMerge_1 = __importDefault(__webpack_require__(592));
+const checkIfHasRebaseInProgressLabel_1 = __importDefault(__webpack_require__(778));
 const isEnabledForPR_1 = __importDefault(__webpack_require__(520));
+const removeLabelFromOpenPRs_1 = __importDefault(__webpack_require__(837));
+const rebaseNextLabeledOpenedPR_1 = __importDefault(__webpack_require__(817));
 function mergeIfReady(client, owner, repo, number, sha, config) {
     return __awaiter(this, void 0, void 0, function* () {
-        const pr = yield client.pulls.get({
+        const current_pr = yield client.pulls.get({
             owner,
             repo,
             pull_number: number,
         });
-        if (!isEnabledForPR_1.default(pr.data, config.whitelist, config.blacklist)) {
+        if (!isEnabledForPR_1.default(current_pr.data, config.whitelist, config.blacklist)) {
             return;
         }
-        console.log('raw pr', pr);
-        console.log('pr and mergeable', pr.data.number, pr.data.mergeable, pr.data.mergeable_state);
-        if (canMerge_1.default(pr.data, config.whitelist, config.blacklist)) {
+        console.log(`PR #${current_pr.data.number}, data= ${current_pr}`);
+        console.log(`PR #${current_pr.data.number}, mergeable=${current_pr.data.mergeable}, mergeable_state=${current_pr.data.mergeable_state}`);
+        if (canMerge_1.default(current_pr.data, config.whitelist, config.blacklist)) {
             yield client.pulls.merge({
                 owner,
                 repo,
-                pull_number: number,
-                sha,
-                merge_method: config.method,
+                pull_number: number
             });
+            console.log(`PR #${current_pr.data.number} merged`);
+            // if we merged a pr without 'rebase-in-progress' label, lets than remove it from those that have it
+            if (!checkIfHasRebaseInProgressLabel_1.default(current_pr.data, config.rebaseInProgressLabel)) {
+                console.log(`We merged a pr without '${config.rebaseInProgressLabel}'. In order to being able to rebase others, we need to remove it from the one that has it.`);
+                yield removeLabelFromOpenPRs_1.default(client, config, owner, repo);
+                yield rebaseNextLabeledOpenedPR_1.default(client, config, owner, repo);
+            }
+        }
+        else {
+            // the pr wasn't up to date with master, so we rebase the next one
+            if (current_pr.data.mergeable_state === 'behind') {
+                yield rebaseNextLabeledOpenedPR_1.default(client, config, owner, repo);
+            }
         }
     });
 }
@@ -11864,12 +12018,12 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var endpoint = __webpack_require__(385);
-var universalUserAgent = __webpack_require__(796);
+var universalUserAgent = __webpack_require__(211);
 var isPlainObject = _interopDefault(__webpack_require__(548));
 var nodeFetch = _interopDefault(__webpack_require__(454));
 var requestError = __webpack_require__(463);
 
-const VERSION = "5.2.1";
+const VERSION = "5.3.2";
 
 function getBufferResponse(response) {
   return response.arrayBuffer();
@@ -11899,7 +12053,7 @@ function fetchWrapper(requestOptions) {
 
     if (status === 204 || status === 205) {
       return;
-    } // GitHub API returns 200 for HEAD requsets
+    } // GitHub API returns 200 for HEAD requests
 
 
     if (requestOptions.method === "HEAD") {
@@ -11930,7 +12084,7 @@ function fetchWrapper(requestOptions) {
         try {
           let responseBody = JSON.parse(error.message);
           Object.assign(error, responseBody);
-          let errors = responseBody.errors; // Assumption `errors` would always be in Array Fotmat
+          let errors = responseBody.errors; // Assumption `errors` would always be in Array format
 
           error.message = error.message + ": " + errors.map(JSON.stringify).join(", ");
         } catch (e) {// ignore, see octokit/rest.js#684
@@ -12077,32 +12231,25 @@ function getFirstPage (octokit, link, headers) {
 
 /***/ }),
 
-/***/ 796:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
+/***/ 778:
+/***/ (function(__unusedmodule, exports) {
 
 "use strict";
 
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var osName = _interopDefault(__webpack_require__(2));
-
-function getUserAgent() {
-  try {
-    return `Node.js/${process.version.substr(1)} (${osName()}; ${process.arch})`;
-  } catch (error) {
-    if (/wmic os get Caption/.test(error.message)) {
-      return "Windows <version undetectable>";
+Object.defineProperty(exports, "__esModule", { value: true });
+function checkIfHasRebaseInProgressLabel(pr, rebaseInProgressLabel) {
+    const labels = pr.labels.map((label) => label.name);
+    console.log(`PR #${pr.number}: labels ${labels}`);
+    const foundRebaseInProgress = labels.filter((label) => rebaseInProgressLabel == label);
+    if (foundRebaseInProgress.length > 0) {
+        console.log(`PR #${pr.number}: is flagged with label for rebase in progress`);
+        return true;
     }
-
-    throw error;
-  }
+    else {
+        return false;
+    }
 }
-
-exports.getUserAgent = getUserAgent;
-//# sourceMappingURL=index.js.map
+exports.default = checkIfHasRebaseInProgressLabel;
 
 
 /***/ }),
@@ -12348,6 +12495,56 @@ module.exports = /^#!.*/;
 
 /***/ }),
 
+/***/ 817:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const checkIfHasRebaseInProgressLabel_1 = __importDefault(__webpack_require__(778));
+const isEnabledForPR_1 = __importDefault(__webpack_require__(520));
+const labelAndCommentPR_1 = __importDefault(__webpack_require__(729));
+function rebaseNextLabeledOpenedPR(client, config, owner, repo) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log(`Checking if there are still open PRs with auto-merge label that can be rebased`);
+        var areRebasesInProgress = false;
+        const openedPrs = yield client.pulls.list({
+            repo,
+            owner: owner,
+            state: 'open',
+            sort: 'created',
+        });
+        var autoMergePrs = [];
+        openedPrs.data.map((pr) => {
+            if (!isEnabledForPR_1.default(pr, config.whitelist, config.blacklist)) {
+                return;
+            }
+            areRebasesInProgress = areRebasesInProgress || checkIfHasRebaseInProgressLabel_1.default(pr, config.rebaseInProgressLabel);
+            console.log(`checking PR #${pr.number}, areRebasesInProgress=${areRebasesInProgress}`);
+            autoMergePrs.push(pr);
+        });
+        if (areRebasesInProgress == false && autoMergePrs.length > 0) {
+            yield labelAndCommentPR_1.default(client, config, owner, repo, autoMergePrs[0].number);
+        }
+    });
+}
+exports.default = rebaseNextLabeledOpenedPR;
+
+
+/***/ }),
+
 /***/ 818:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
@@ -12448,6 +12645,50 @@ module.exports.addConstructor = deprecated('addConstructor');
 /***/ (function(module) {
 
 module.exports = require("url");
+
+/***/ }),
+
+/***/ 837:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const checkIfHasRebaseInProgressLabel_1 = __importDefault(__webpack_require__(778));
+function removeLabelFromOpenPRs(client, config, owner, repo) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const stillOpenedPrs = yield client.pulls.list({
+            owner,
+            repo,
+            state: 'open',
+        });
+        stillOpenedPrs.data.map((pr) => {
+            if (checkIfHasRebaseInProgressLabel_1.default(pr, config.rebaseInProgressLabel)) {
+                console.log(`PR #${pr.number} is labeled with ${config.rebaseInProgressLabel}, we are removing it`);
+                client.issues.removeLabel({
+                    owner,
+                    repo,
+                    issue_number: pr.number,
+                    name: config.rebaseInProgressLabel,
+                });
+            }
+        });
+    });
+}
+exports.default = removeLabelFromOpenPRs;
+
 
 /***/ }),
 
@@ -13495,7 +13736,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs = __importStar(__webpack_require__(747));
 const js_yaml_1 = __importDefault(__webpack_require__(414));
 function parseConfig(rawConfig) {
-    const result = { whitelist: [], blacklist: [], method: undefined };
+    const result = {
+        whitelist: [],
+        blacklist: [],
+        allowUpdateOfPR: false,
+        rebaseInProgressLabel: 'rebase-in-progress',
+        rebaseCommentCommand: '/rebase'
+    };
     if (rawConfig && rawConfig.whitelist) {
         if (Array.isArray(rawConfig.whitelist)) {
             result.whitelist = rawConfig.whitelist;
@@ -13512,13 +13759,23 @@ function parseConfig(rawConfig) {
             throw new Error('`blacklist` should be an array');
         }
     }
-    if (rawConfig && rawConfig.method) {
-        const allowedString = ['squash', 'merge', 'rebase'];
-        if (typeof rawConfig.method !== 'string' ||
-            !allowedString.includes(rawConfig.method)) {
-            throw new Error(`'method' should be either 'merge', 'rebase', 'squash' or 'undefined', got ${rawConfig.method}`);
+    if (rawConfig && rawConfig.allowUpdateOfPR) {
+        if (typeof rawConfig.allowUpdateOfPR !== 'boolean') {
+            throw new Error(`'allowUpdateOfPR' should be either false or true, got ${rawConfig.allowUpdateOfPR}`);
         }
-        result.method = rawConfig.method;
+        result.allowUpdateOfPR = rawConfig.allowUpdateOfPR;
+    }
+    if (rawConfig && rawConfig.rebaseInProgressLabel) {
+        if (typeof rawConfig.rebaseInProgressLabel !== 'string') {
+            throw new Error(`'rebaseInProgressLabel' should be either false or true, got ${rawConfig.rebaseInProgressLabel}`);
+        }
+        result.rebaseInProgressLabel = rawConfig.rebaseInProgressLabel;
+    }
+    if (rawConfig && rawConfig.rebaseCommentCommand) {
+        if (typeof rawConfig.rebaseCommentCommand !== 'string') {
+            throw new Error(`'rebaseCommentCommand' should be either false or true, got ${rawConfig.rebaseCommentCommand}`);
+        }
+        result.rebaseCommentCommand = rawConfig.rebaseCommentCommand;
     }
     return result;
 }

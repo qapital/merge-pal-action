@@ -1,6 +1,9 @@
 import { Client, Config } from './types'
 import canMerge from './canMerge'
+import checkIfHasRebaseInProgressLabel from './checkIfHasRebaseInProgressLabel'
 import isEnabledForPR from './isEnabledForPR'
+import removeLabelFromOpenPRs from './removeLabelFromOpenPRs'
+import rebaseNextLabeledOpenedPR from './rebaseNextLabeledOpenedPR'
 
 export default async function mergeIfReady(
     client: Client,
@@ -10,28 +13,33 @@ export default async function mergeIfReady(
     sha: string,
     config: Config,
 ) {
-    const pr = await client.pulls.get({
+    const current_pr = await client.pulls.get({
         owner,
         repo,
         pull_number: number,
     })
-    if (!isEnabledForPR(pr.data, config.whitelist, config.blacklist)) {
+    if (!isEnabledForPR(current_pr.data, config.whitelist, config.blacklist)) {
         return
     }
-    console.log('raw pr', pr)
-    console.log(
-        'pr and mergeable',
-        pr.data.number,
-        pr.data.mergeable,
-        pr.data.mergeable_state,
-    )
-    if (canMerge(pr.data, config.whitelist, config.blacklist)) {
+    console.log(`PR #${ current_pr.data.number }, data= ${ current_pr }`)
+    console.log(`PR #${ current_pr.data.number }, mergeable=${ current_pr.data.mergeable}, mergeable_state=${ current_pr.data.mergeable_state}`)
+    if (canMerge(current_pr.data, config.whitelist, config.blacklist)) {
         await client.pulls.merge({
             owner,
             repo,
-            pull_number: number,
-            sha,
-            merge_method: config.method,
+            pull_number: number
         })
+        console.log(`PR #${ current_pr.data.number } merged`)
+        // if we merged a pr without 'rebase-in-progress' label, lets than remove it from those that have it
+        if (!checkIfHasRebaseInProgressLabel(current_pr.data, config.rebaseInProgressLabel)){
+            console.log(`We merged a pr without '${config.rebaseInProgressLabel}'. In order to being able to rebase others, we need to remove it from the one that has it.`)
+            await removeLabelFromOpenPRs(client, config, owner, repo)
+            await rebaseNextLabeledOpenedPR(client, config, owner, repo)
+        }
+    } else {
+        // the pr wasn't up to date with master, so we rebase the next one
+        if ( current_pr.data.mergeable_state === 'behind'){
+            await rebaseNextLabeledOpenedPR(client, config, owner, repo)
+        }
     }
 }

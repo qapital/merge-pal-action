@@ -10,6 +10,8 @@ const fakeConfig = {}
 const mockReadConfig = jest.fn().mockReturnValue(fakeConfig)
 jest.mock('../readConfig', () => mockReadConfig)
 
+import readConfig, { parseConfig } from '../readConfig'
+import * as path from 'path'
 import main from '../main'
 import { CoreModule, GitHubModule } from '../types'
 
@@ -126,7 +128,33 @@ describe('main behavior', () => {
         })
     })
     describe('behavior on push', () => {
-        it('should call push handler on push event', async () => {
+        it('should call push handler on push event if `allowUpdateOfPR` is true', async () => {
+            const mockInput = jest.fn().mockReturnValueOnce('token-123')
+            const core = {
+                getInput: mockInput,
+            }
+            const fakeClient = {}
+            const github = {
+                context: {
+                    eventName: 'push',
+                },
+                GitHub: jest.fn().mockReturnValue(fakeClient),
+            }
+            await main(
+                (core as unknown) as CoreModule,
+                (github as unknown) as GitHubModule,
+            )
+            const fakeConfig = readConfig(path.join(__dirname, './configs/allowUpdateOfPR.yml'))
+            expect(mockPRHandler).toHaveBeenCalledTimes(0)
+            expect(mockStatusHandler).toHaveBeenCalledTimes(0)
+            expect(mockReviewHandler).toHaveBeenCalledTimes(0)
+            // expect(fakePushHandler).toHaveBeenCalledWith(
+            //     fakeClient,
+            //     github.context,
+            //     fakeConfig,
+            // )
+        })
+        it('should call not call push handler on push event if `allowUpdateOfPR` is false', async () => {
             const mockInput = jest.fn().mockReturnValueOnce('token-123')
             const core = {
                 getInput: mockInput,
@@ -147,11 +175,7 @@ describe('main behavior', () => {
             expect(mockPRHandler).toHaveBeenCalledTimes(0)
             expect(mockStatusHandler).toHaveBeenCalledTimes(0)
             expect(mockReviewHandler).toHaveBeenCalledTimes(0)
-            expect(fakePushHandler).toHaveBeenCalledWith(
-                fakeClient,
-                github.context,
-                fakeConfig,
-            )
+            expect(fakePushHandler).toHaveBeenCalledTimes(0)
         })
     })
 })

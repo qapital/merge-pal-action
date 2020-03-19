@@ -1,6 +1,6 @@
 import { Client, Context, Config, PushPayload } from './types'
-import Octokit = require('@octokit/rest')
 import isEnabledForPR from './isEnabledForPR'
+import rebaseNextLabeledOpenedPR from './rebaseNextLabeledOpenedPR'
 
 export default async function pushHandler(
     client: Client,
@@ -15,17 +15,23 @@ export default async function pushHandler(
         state: 'open',
         base: branchName,
     })
-    console.log('opened prs', openedPrs)
+    console.log(`openedPrs= ${ openedPrs }`)
     await Promise.all(
         openedPrs.data.map((pr) => {
             if (!isEnabledForPR(pr, config.whitelist, config.blacklist)) {
                 return
             }
-            return client.pulls.updateBranch({
-                ...context.repo,
-                pull_number: pr.number,
-                expected_head_sha: pr.head.sha,
-            })
+            console.log(`allowUpdateOfPR is ${ config.allowUpdateOfPR }`)
+            if (config.allowUpdateOfPR){
+                return client.pulls.updateBranch({
+                    ...context.repo,
+                    pull_number: pr.number,
+                    expected_head_sha: pr.head.sha,
+                })
+            }
         }),
     )
+    if (!config.allowUpdateOfPR){
+        await rebaseNextLabeledOpenedPR(client, config, context.repo.owner, context.repo.repo)
+    }
 }

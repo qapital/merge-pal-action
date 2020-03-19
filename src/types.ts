@@ -9,7 +9,9 @@ export type Client = github.GitHub
 export interface Config {
     whitelist: string[]
     blacklist: string[]
-    method?: 'merge' | 'squash' | 'rebase'
+    allowUpdateOfPR: boolean
+    rebaseInProgressLabel: string
+    rebaseCommentCommand: string
 }
 
 export interface PullRequestPayload {
