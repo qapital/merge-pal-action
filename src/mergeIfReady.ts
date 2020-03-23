@@ -1,7 +1,9 @@
 import { Client, Config } from './types'
 import canMerge from './canMerge'
-import checkIfRebaseInProgress from './checkIfRebaseInProgress'
+import checkIfHasRebaseInProgressLabel from './checkIfHasRebaseInProgressLabel'
 import isEnabledForPR from './isEnabledForPR'
+import removeLabelFromOpenPRs from './removeLabelFromOpenPRs'
+import rebaseNextLabeledOpenedPR from './rebaseNextLabeledOpenedPR'
 
 export default async function mergeIfReady(
     client: Client,
@@ -19,7 +21,7 @@ export default async function mergeIfReady(
     if (!isEnabledForPR(current_pr.data, config.whitelist, config.blacklist)) {
         return
     }
-    console.log('current_pr', current_pr)
+    console.log(`PR #${ current_pr.data.number }, data= ${ current_pr }`)
     console.log(`PR #${ current_pr.data.number }, mergeable=${ current_pr.data.mergeable}, mergeable_state=${ current_pr.data.mergeable_state}`)
     if (canMerge(current_pr.data, config.whitelist, config.blacklist)) {
         await client.pulls.merge({
@@ -27,56 +29,17 @@ export default async function mergeIfReady(
             repo,
             pull_number: number
         })
+        console.log(`PR #${ current_pr.data.number } merged`)
         // if we merged a pr without 'rebase-in-progress' label, lets than remove it from those that have it
-        if (!checkIfRebaseInProgress(current_pr.data, config.rebaseInProgressLabel)){
-            const stillOpenedPrs = await client.pulls.list({
-                repo,
-                owner: owner,
-                state: 'open',
-            })
-            stillOpenedPrs.data.map((pr) => {
-                if (checkIfRebaseInProgress(pr, config.rebaseInProgressLabel)){
-                    console.log(`PR #${pr.number} is labeled with ${config.rebaseInProgressLabel}, we are removing it`)
-                    client.issues.removeLabel({
-                        owner,
-                        repo,
-                        issue_number: pr.number,
-                        name: config.rebaseInProgressLabel,
-                    })
-                }
-            })
+        if (!checkIfHasRebaseInProgressLabel(current_pr.data, config.rebaseInProgressLabel)){
+            console.log(`We merged a pr without '${config.rebaseInProgressLabel}'. In order to being able to rebase others, we need to remove it from the one that has it.`)
+            await removeLabelFromOpenPRs(client, config, owner, repo)
+            await rebaseNextLabeledOpenedPR(client, config, owner, repo)
         }
     } else {
+        // the pr wasn't up to date with master, so we rebase the next one
         if ( current_pr.data.mergeable_state === 'behind'){
-            var areRebasesInProgress = false
-            const openedPrs = await client.pulls.list({
-                repo,
-                owner: owner,
-                state: 'open',
-            })
-            openedPrs.data.map((pr) => {
-                console.log(`checking PR #${pr.number}, areRebasesInProgress=${areRebasesInProgress}`)
-                areRebasesInProgress = areRebasesInProgress || checkIfRebaseInProgress(pr, config.rebaseInProgressLabel)
-                console.log(`checking PR #${pr.number} done, areRebasesInProgress=${areRebasesInProgress}`)
-            })
-            if (!areRebasesInProgress){
-                console.log(`Adding label '${config.rebaseInProgressLabel}' to PR #${ current_pr.data.number }`)
-                const labels: string[] = [config.rebaseInProgressLabel];
-                await client.issues.addLabels({
-                    owner,
-                    repo,
-                    issue_number: number,
-                    labels
-                })
-                console.log(`Adding comment '${ config.rebaseCommentCommand }' to PR #${ current_pr.data.number }`)
-                await client.issues.createComment({
-                    owner,
-                    repo,
-                    issue_number: number,
-                    body: config.rebaseCommentCommand
-                })
-                console.log(`Done`)
-            }
+            await rebaseNextLabeledOpenedPR(client, config, owner, repo)
         }
     }
 }

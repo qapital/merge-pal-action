@@ -10,7 +10,7 @@ export default async function main(core: CoreModule, github: GitHubModule) {
     const client = new github.GitHub(token)
     const config = readConfig('.mergepal.yml')
     console.log('config', JSON.stringify(config))
-    console.log('context', JSON.stringify(github.context))
+    // console.log('context', JSON.stringify(github.context))
     const event = github.context.eventName
     switch (event) {
         case 'pull_request':

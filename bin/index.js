@@ -2044,7 +2044,7 @@ function main(core, github) {
         const client = new github.GitHub(token);
         const config = readConfig_1.default('.mergepal.yml');
         console.log('config', JSON.stringify(config));
-        console.log('context', JSON.stringify(github.context));
+        // console.log('context', JSON.stringify(github.context))
         const event = github.context.eventName;
         switch (event) {
             case 'pull_request':
@@ -4539,7 +4539,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const isEnabledForPR_1 = __importDefault(__webpack_require__(520));
-const checkIfRebaseInProgress_1 = __importDefault(__webpack_require__(457));
+const rebaseNextLabeledOpenedPR_1 = __importDefault(__webpack_require__(817));
 function pushHandler(client, context, config) {
     return __awaiter(this, void 0, void 0, function* () {
         const payload = context.payload;
@@ -4547,7 +4547,6 @@ function pushHandler(client, context, config) {
         const branchName = components[components.length - 1];
         const openedPrs = yield client.pulls.list(Object.assign(Object.assign({}, context.repo), { state: 'open', base: branchName }));
         console.log(`openedPrs= ${openedPrs}`);
-        var autoMergePrs = [];
         yield Promise.all(openedPrs.data.map((pr) => {
             if (!isEnabledForPR_1.default(pr, config.whitelist, config.blacklist)) {
                 return;
@@ -4556,25 +4555,9 @@ function pushHandler(client, context, config) {
             if (config.allowUpdateOfPR) {
                 return client.pulls.updateBranch(Object.assign(Object.assign({}, context.repo), { pull_number: pr.number, expected_head_sha: pr.head.sha }));
             }
-            autoMergePrs.push(pr);
         }));
-        if (!config.allowUpdateOfPR && autoMergePrs.length > 0) {
-            console.log(`autoMergePrs= ${autoMergePrs}`);
-            var areRebasesInProgress = false;
-            autoMergePrs.map((pr) => {
-                console.log(`checking PR #${pr.number}, areRebasesInProgress=${areRebasesInProgress}`);
-                areRebasesInProgress = areRebasesInProgress || checkIfRebaseInProgress_1.default(pr, config.rebaseInProgressLabel);
-                console.log(`checking PR #${pr.number} done, areRebasesInProgress=${areRebasesInProgress}`);
-            });
-            if (!areRebasesInProgress) {
-                const currentPr = autoMergePrs[0];
-                console.log(`Adding label '${config.rebaseInProgressLabel}' to PR #${currentPr.number}`);
-                const labels = [config.rebaseInProgressLabel];
-                yield client.issues.addLabels(Object.assign(Object.assign({}, context.repo), { issue_number: currentPr.number, labels }));
-                console.log(`Adding comment '/rabase' to PR #${currentPr.number}`);
-                yield client.issues.createComment(Object.assign(Object.assign({}, context.repo), { issue_number: currentPr.number, body: '/rebase' }));
-                console.log(`Done`);
-            }
+        if (!config.allowUpdateOfPR) {
+            yield rebaseNextLabeledOpenedPR_1.default(client, config, context.repo.owner, context.repo.repo);
         }
     });
 }
@@ -9238,7 +9221,7 @@ exports.FetchError = FetchError;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-function checkIfRebaseInProgress(pr, rebaseInProgressLabel) {
+function checkIfHasRebaseInProgressLabel(pr, rebaseInProgressLabel) {
     const labels = pr.labels.map((label) => label.name);
     console.log(`PR #${pr.number}: labels ${labels}`);
     const foundRebaseInProgress = labels.filter((label) => rebaseInProgressLabel == label);
@@ -9247,11 +9230,10 @@ function checkIfRebaseInProgress(pr, rebaseInProgressLabel) {
         return true;
     }
     else {
-        console.log(`PR #${pr.number}: needs a rebase`);
         return false;
     }
 }
-exports.default = checkIfRebaseInProgress;
+exports.default = checkIfHasRebaseInProgressLabel;
 
 
 /***/ }),
@@ -11808,6 +11790,46 @@ module.exports = new Schema({
 
 /***/ }),
 
+/***/ 729:
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+function labelAndCommentPR(client, config, owner, repo, number) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log(`Adding label '${config.rebaseInProgressLabel}' to PR #${number}`);
+        const labels = [config.rebaseInProgressLabel];
+        yield client.issues.addLabels({
+            owner,
+            repo,
+            issue_number: number,
+            labels
+        });
+        console.log(`Adding comment '${config.rebaseCommentCommand}' to PR #${number}`);
+        yield client.issues.createComment({
+            owner,
+            repo,
+            issue_number: number,
+            body: config.rebaseCommentCommand
+        });
+        console.log(`Done`);
+    });
+}
+exports.default = labelAndCommentPR;
+
+
+/***/ }),
+
 /***/ 740:
 /***/ (function(module) {
 
@@ -11960,6 +11982,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const canMerge_1 = __importDefault(__webpack_require__(592));
 const checkIfRebaseInProgress_1 = __importDefault(__webpack_require__(457));
 const isEnabledForPR_1 = __importDefault(__webpack_require__(520));
+const removeLabelFromOpenPRs_1 = __importDefault(__webpack_require__(837));
+const rebaseNextLabeledOpenedPR_1 = __importDefault(__webpack_require__(817));
 function mergeIfReady(client, owner, repo, number, sha, config) {
     return __awaiter(this, void 0, void 0, function* () {
         const current_pr = yield client.pulls.get({
@@ -11970,7 +11994,7 @@ function mergeIfReady(client, owner, repo, number, sha, config) {
         if (!isEnabledForPR_1.default(current_pr.data, config.whitelist, config.blacklist)) {
             return;
         }
-        console.log('current_pr', current_pr);
+        console.log(`PR #${current_pr.data.number}, data= ${current_pr}`);
         console.log(`PR #${current_pr.data.number}, mergeable=${current_pr.data.mergeable}, mergeable_state=${current_pr.data.mergeable_state}`);
         if (canMerge_1.default(current_pr.data, config.whitelist, config.blacklist)) {
             yield client.pulls.merge({
@@ -11978,57 +12002,18 @@ function mergeIfReady(client, owner, repo, number, sha, config) {
                 repo,
                 pull_number: number
             });
+            console.log(`PR #${current_pr.data.number} merged`);
             // if we merged a pr without 'rebase-in-progress' label, lets than remove it from those that have it
             if (!checkIfRebaseInProgress_1.default(current_pr.data, config.rebaseInProgressLabel)) {
-                const stillOpenedPrs = yield client.pulls.list({
-                    repo,
-                    owner: owner,
-                    state: 'open',
-                });
-                stillOpenedPrs.data.map((pr) => {
-                    if (checkIfRebaseInProgress_1.default(pr, config.rebaseInProgressLabel)) {
-                        console.log(`PR #${pr.number} is labeled with ${config.rebaseInProgressLabel}, we are removing it`);
-                        client.issues.removeLabel({
-                            owner,
-                            repo,
-                            issue_number: pr.number,
-                            name: config.rebaseInProgressLabel,
-                        });
-                    }
-                });
+                console.log(`We merged a pr without '${config.rebaseInProgressLabel}'. In order to being able to rebase others, we need to remove it from the one that has it.`);
+                yield removeLabelFromOpenPRs_1.default(client, config, owner, repo);
+                yield rebaseNextLabeledOpenedPR_1.default(client, config, owner, repo);
             }
         }
         else {
+            // the pr wasn't up to date with master, so we rebase the next one
             if (current_pr.data.mergeable_state === 'behind') {
-                var areRebasesInProgress = false;
-                const openedPrs = yield client.pulls.list({
-                    repo,
-                    owner: owner,
-                    state: 'open',
-                });
-                openedPrs.data.map((pr) => {
-                    console.log(`checking PR #${pr.number}, areRebasesInProgress=${areRebasesInProgress}`);
-                    areRebasesInProgress = areRebasesInProgress || checkIfRebaseInProgress_1.default(pr, config.rebaseInProgressLabel);
-                    console.log(`checking PR #${pr.number} done, areRebasesInProgress=${areRebasesInProgress}`);
-                });
-                if (!areRebasesInProgress) {
-                    console.log(`Adding label '${config.rebaseInProgressLabel}' to PR #${current_pr.data.number}`);
-                    const labels = [config.rebaseInProgressLabel];
-                    yield client.issues.addLabels({
-                        owner,
-                        repo,
-                        issue_number: number,
-                        labels
-                    });
-                    console.log(`Adding comment '${config.rebaseCommentCommand}' to PR #${current_pr.data.number}`);
-                    yield client.issues.createComment({
-                        owner,
-                        repo,
-                        issue_number: number,
-                        body: config.rebaseCommentCommand
-                    });
-                    console.log(`Done`);
-                }
+                yield rebaseNextLabeledOpenedPR_1.default(client, config, owner, repo);
             }
         }
     });
@@ -12510,6 +12495,56 @@ module.exports = /^#!.*/;
 
 /***/ }),
 
+/***/ 817:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const checkIfRebaseInProgress_1 = __importDefault(__webpack_require__(457));
+const isEnabledForPR_1 = __importDefault(__webpack_require__(520));
+const labelAndCommentPR_1 = __importDefault(__webpack_require__(729));
+function rebaseNextLabeledOpenedPR(client, config, owner, repo) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log(`Checking if there are still open PRs with auto-merge label that can be rebased`);
+        var areRebasesInProgress = false;
+        const openedPrs = yield client.pulls.list({
+            repo,
+            owner: owner,
+            state: 'open',
+            sort: 'created',
+        });
+        var autoMergePrs = [];
+        openedPrs.data.map((pr) => {
+            if (!isEnabledForPR_1.default(pr, config.whitelist, config.blacklist)) {
+                return;
+            }
+            areRebasesInProgress = areRebasesInProgress || checkIfRebaseInProgress_1.default(pr, config.rebaseInProgressLabel);
+            console.log(`checking PR #${pr.number}, areRebasesInProgress=${areRebasesInProgress}`);
+            autoMergePrs.push(pr);
+        });
+        if (areRebasesInProgress == false && autoMergePrs.length > 0) {
+            yield labelAndCommentPR_1.default(client, config, owner, repo, autoMergePrs[0].number);
+        }
+    });
+}
+exports.default = rebaseNextLabeledOpenedPR;
+
+
+/***/ }),
+
 /***/ 818:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
@@ -12610,6 +12645,50 @@ module.exports.addConstructor = deprecated('addConstructor');
 /***/ (function(module) {
 
 module.exports = require("url");
+
+/***/ }),
+
+/***/ 837:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const checkIfRebaseInProgress_1 = __importDefault(__webpack_require__(457));
+function removeLabelFromOpenPRs(client, config, owner, repo) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const stillOpenedPrs = yield client.pulls.list({
+            owner,
+            repo,
+            state: 'open',
+        });
+        stillOpenedPrs.data.map((pr) => {
+            if (checkIfRebaseInProgress_1.default(pr, config.rebaseInProgressLabel)) {
+                console.log(`PR #${pr.number} is labeled with ${config.rebaseInProgressLabel}, we are removing it`);
+                client.issues.removeLabel({
+                    owner,
+                    repo,
+                    issue_number: pr.number,
+                    name: config.rebaseInProgressLabel,
+                });
+            }
+        });
+    });
+}
+exports.default = removeLabelFromOpenPRs;
+
 
 /***/ }),
 

@@ -1,5 +1,5 @@
 import Octokit = require('@octokit/rest')
-export default function checkIfRebaseInProgress(
+export default function checkIfHasRebaseInProgressLabel(
     pr: Octokit.PullsGetResponse | Octokit.PullsListResponseItem,
     rebaseInProgressLabel: string,
 ) {
@@ -10,7 +10,6 @@ export default function checkIfRebaseInProgress(
         console.log(`PR #${ pr.number }: is flagged with label for rebase in progress`)
         return true
     }else{
-        console.log(`PR #${ pr.number }: needs a rebase`)
         return false
     }
 }
