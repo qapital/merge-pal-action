@@ -12520,20 +12520,31 @@ function rebaseNextLabeledOpenedPR(client, config, owner, repo) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`Checking if there are still open PRs with auto-merge label that can be rebased`);
         var areRebasesInProgress = false;
-        const openedPrs = yield client.pulls.list({
+        var autoMergePrs = [];
+        client.pulls.list({
             repo,
             owner: owner,
             state: 'open',
             sort: 'created',
-        });
-        var autoMergePrs = [];
-        openedPrs.data.map((pr) => {
-            if (!isEnabledForPR_1.default(pr, config.whitelist, config.blacklist)) {
-                return;
-            }
-            areRebasesInProgress = areRebasesInProgress || checkIfHasRebaseInProgressLabel_1.default(pr, config.rebaseInProgressLabel);
-            console.log(`checking PR #${pr.number}, areRebasesInProgress=${areRebasesInProgress}`);
-            autoMergePrs.push(pr);
+        }).then(openedPrs => {
+            openedPrs.data.map((pr) => {
+                if (!isEnabledForPR_1.default(pr, config.whitelist, config.blacklist)) {
+                    return;
+                }
+                client.pulls.get({
+                    owner,
+                    repo,
+                    pull_number: pr.number,
+                }).then(current_pr => {
+                    if (current_pr.data.mergeable_state !== 'behind') {
+                        console.log(`PR #${pr.number}, mergeable_state=${current_pr.data.mergeable_state}, no need to rebase`);
+                        return;
+                    }
+                });
+                areRebasesInProgress = areRebasesInProgress || checkIfHasRebaseInProgressLabel_1.default(pr, config.rebaseInProgressLabel);
+                console.log(`checking PR #${pr.number}, areRebasesInProgress=${areRebasesInProgress}`);
+                autoMergePrs.push(pr);
+            });
         });
         if (areRebasesInProgress == false && autoMergePrs.length > 0) {
             yield labelAndCommentPR_1.default(client, config, owner, repo, autoMergePrs[0].number);
@@ -12674,7 +12685,7 @@ function removeLabelFromOpenPRs(client, config, owner, repo) {
             repo,
             state: 'open',
         });
-        stillOpenedPrs.data.map((pr) => {
+        yield Promise.all(stillOpenedPrs.data.map((pr) => {
             if (checkIfHasRebaseInProgressLabel_1.default(pr, config.rebaseInProgressLabel)) {
                 console.log(`PR #${pr.number} is labeled with ${config.rebaseInProgressLabel}, we are removing it`);
                 client.issues.removeLabel({
@@ -12684,7 +12695,7 @@ function removeLabelFromOpenPRs(client, config, owner, repo) {
                     name: config.rebaseInProgressLabel,
                 });
             }
-        });
+        }));
     });
 }
 exports.default = removeLabelFromOpenPRs;

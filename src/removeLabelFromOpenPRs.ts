@@ -13,15 +13,17 @@ export default async function removeLabelFromOpenPRs(
         repo,
         state: 'open',
     })
-    stillOpenedPrs.data.map((pr) => {
-        if (checkIfHasRebaseInProgressLabel(pr, config.rebaseInProgressLabel)){
-            console.log(`PR #${pr.number} is labeled with ${config.rebaseInProgressLabel}, we are removing it`)
-            client.issues.removeLabel({
-                owner,
-                repo,
-                issue_number: pr.number,
-                name: config.rebaseInProgressLabel,
-            })
-        }
-    })
+    await Promise.all(
+        stillOpenedPrs.data.map((pr) => {
+            if (checkIfHasRebaseInProgressLabel(pr, config.rebaseInProgressLabel)){
+                console.log(`PR #${pr.number} is labeled with ${config.rebaseInProgressLabel}, we are removing it`)
+                client.issues.removeLabel({
+                    owner,
+                    repo,
+                    issue_number: pr.number,
+                    name: config.rebaseInProgressLabel,
+                })
+            }
+        })
+    )
 }
