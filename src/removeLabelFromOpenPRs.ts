@@ -22,6 +22,8 @@ export default async function removeLabelFromOpenPRs(
                     repo,
                     issue_number: pr.number,
                     name: config.rebaseInProgressLabel,
+                }).then(response => {
+                    console.log(`response ${ response}`)
                 })
             }
         })
